@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // url      = env("DATABASE_URL")
+  url      = env("POSTGRES_PRISMA_URL")
+}
+
+model Subtask {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String
+  done        Boolean
+  taskId      Int?
+  Task        Task?   @relation(fields: [taskId], references: [id])
+}
+
+model Task {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String
+  status      String
+  group       String
+  projectId   Int?
+  subtasks    Subtask[]
+  Project     Project?  @relation(fields: [projectId], references: [id])
+}
+
+model Note {
+  id        Int      @id @default(autoincrement())
+  title     String
+  body      String
+  projectId Int?
+  Project   Project? @relation(fields: [projectId], references: [id])
+}
+
+model Question {
+  id        Int      @id @default(autoincrement())
+  title     String
+  body      String
+  projectId Int?
+  Project   Project? @relation(fields: [projectId], references: [id])
+}
+
+model Project {
+  id        Int        @id @default(autoincrement())
+  name      String
+  overview  String
+  notes     Note[]
+  questions Question[]
+  tasks     Task[]
+  User      User?      @relation(fields: [userId], references: [id])
+  userId    Int?
+}
+
+model User {
+  id       Int       @id @default(autoincrement())
+  name     String
+  email    String
+  password String
+  Project  Project[]
+  imageUrl String    @default("")
+}
