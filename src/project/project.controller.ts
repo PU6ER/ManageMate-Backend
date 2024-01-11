@@ -18,13 +18,13 @@ export class ProjectController {
 
   @Get('/projects')
   @Public()
-  @Header('Access-Control-Allow-Origin', 'http://localhost:5173')
+  // @Header('Access-Control-Allow-Origin', 'http://localhost:5173')
   async getAll() {
     return this.projectService.getAll();
   }
   @Get('/projects/:id')
   @Public()
-  @Header('Access-Control-Allow-Origin', 'http://localhost:5173')
+  // @Header('Access-Control-Allow-Origin', 'http://localhost:5173')
   async getProjectById(@Param('id') id: string) {
     return this.projectService.getProjectById(id);
   }

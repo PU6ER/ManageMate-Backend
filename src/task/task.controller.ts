@@ -24,13 +24,13 @@ export class TaskController {
   }
   @Get('/projects/:id/tasks')
   @Public()
-  @Header('Access-Control-Allow-Origin', 'http://localhost:5173')
+  // @Header('Access-Control-Allow-Origin', 'http://localhost:5173')
   async getTasksByProject(@Param('id') id: string) {
     return this.taskService.getByProjectId(id);
   }
   @Post('/projects/:id/tasks')
   @Public()
-  @Header('Access-Control-Allow-Origin', 'http://localhost:5173')
+  // @Header('Access-Control-Allow-Origin', 'http://localhost:5173')
   @UsePipes(new ValidationPipe())
   async createTask(@Body() dto: TaskDto, @Param('id') id: string) {
     return this.taskService.createTask(dto, +id);
@@ -38,7 +38,7 @@ export class TaskController {
 
   @Delete('/tasks/:id')
   @Public()
-  @Header('Access-Control-Allow-Origin', 'http://localhost:5173')
+  // @Header('Access-Control-Allow-Origin', 'http://localhost:5173')
   async deleteTask(@Param('id') id: string) {
     return this.taskService.deleteTask(id);
   }
