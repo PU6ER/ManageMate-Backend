@@ -34,7 +34,7 @@ export class SubtaskController {
   }
   @Get('/tasks/:id/subtasks')
   @Public()
-  @Header('Access-Control-Allow-Origin', 'http://localhost:5173')
+  // @Header('Access-Control-Allow-Origin', 'http://localhost:5173')
   async getSubtasksByTaskId(@Param('id') id: string) {
     return (await this.subtaskService.getSubtasksByTaskId(id)).sort(
       (a, b) => b.id - a.id,
