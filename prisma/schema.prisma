@@ -8,58 +8,88 @@ datasource db {
   url      = env("POSTGRES_PRISMA_URL")
 }
 
-model Subtask {
-  id          Int     @id @default(autoincrement())
-  name        String
-  description String
-  done        Boolean
-  taskId      Int?
-  Task        Task?   @relation(fields: [taskId], references: [id])
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  name     String
+  email    String @unique
+  password String
+
+  imageUrl       String? @default("") @map("image_url")
+  workInterval   Int?    @default(50) @map("work_interval")
+  breakInterval  Int?    @default(10) @map("break_interval")
+  intervalsCount Int?    @default(7) @map("intervals_count")
+
+  tasks            Task[]
+  timeBlocks       TimeBlock[]
+  pomodoroSessions PomodoroSession[]
+
+  @@map("user")
 }
 
 model Task {
-  id          Int       @id @default(autoincrement())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   name        String
-  description String
-  status      String
-  group       String
-  projectId   Int?
-  subtasks    Subtask[]
-  Project     Project?  @relation(fields: [projectId], references: [id])
+  priority    Priority?
+  isCompleted Boolean?  @default(false) @map("is_completed")
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @map("user_id")
+
+  @@map("task")
 }
 
-model Note {
-  id        Int      @id @default(autoincrement())
-  title     String
-  body      String
-  projectId Int?
-  Project   Project? @relation(fields: [projectId], references: [id])
-}
+model TimeBlock {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-model Question {
-  id        Int      @id @default(autoincrement())
-  title     String
-  body      String
-  projectId Int?
-  Project   Project? @relation(fields: [projectId], references: [id])
-}
-
-model Project {
-  id        Int        @id @default(autoincrement())
-  name      String
-  overview  String
-  notes     Note[]
-  questions Question[]
-  tasks     Task[]
-  User      User?      @relation(fields: [userId], references: [id])
-  userId    Int?
-}
-
-model User {
-  id       Int       @id @default(autoincrement())
   name     String
-  email    String
-  password String
-  Project  Project[]
-  imageUrl String    @default("")
+  color    String?
+  duration Int
+  order    Int     @default(1)
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @map("user_id")
+
+  @@map("time_block")
+}
+
+model PomodoroSession {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  isCompleted Boolean? @default(false) @map("is_completed")
+
+  user           User            @relation(fields: [userId], references: [id])
+  userId         String          @map("user_id")
+  pomodoroRounds PomodoroRound[]
+
+  @@map("pomodoro_session")
+}
+
+model PomodoroRound {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  totalSeconds Int      @map("total_seconds")
+  isCompleted  Boolean? @default(false) @map("is_completed")
+
+  pomodoroSession   PomodoroSession @relation(fields: [pomodoroSessionId], references: [id], onDelete: Cascade)
+  pomodoroSessionId String          @map("pomodoro_session_id")
+
+  @@map("pomodoro_round")
+}
+
+enum Priority {
+  low
+  medium
+  high
 }
