@@ -1,34 +1,96 @@
-import { GetUserDto, UserDto } from './user.dto';
 import { Injectable } from '@nestjs/common';
+import { hash } from 'argon2';
+import { startOfDay, subDays } from 'date-fns';
+import { AuthDto } from 'src/auth/dto/auth.dto';
 import { PrismaService } from './../prisma.service';
+import { UserDto } from './user.dto';
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async getUser(dto: GetUserDto) {
-    const user = this.prisma.user.findFirst({
-      where: { email: dto.email, password: dto.password },
+  async getById(id: string) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      include: { tasks: true },
     });
-    return user;
   }
-  async findOne(email: string) {
-    return this.prisma.user.findFirst({ where: { email: email } });
-  }
-  async getUserById(id: number) {
-    const user = this.prisma.user.findUnique({
-      where: { id: id },
+
+  async getByEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
     });
-    return user;
   }
-  async updateUser(user: UserDto, id: number) {
+
+  async getProfile(id: string) {
+    const profile = await this.getById(id);
+
+    const totalTasks = profile.tasks.length;
+    const completedTasks = await this.prisma.task.count({
+      where: {
+        userId: id,
+        isCompleted: true,
+      },
+    });
+
+    const todayStart = startOfDay(new Date());
+    const weekStart = startOfDay(subDays(new Date(), 7));
+
+    const todayTasks = await this.prisma.task.count({
+      where: {
+        userId: id,
+        createdAt: {
+          gte: todayStart.toISOString(),
+        },
+      },
+    });
+    const weekTasks = await this.prisma.task.count({
+      where: {
+        userId: id,
+        createdAt: {
+          gte: weekStart.toISOString(),
+        },
+      },
+    });
+
+    const { password, ...rest } = profile;
+
+    return {
+      user: rest,
+      statistics: [
+        { label: 'Total', value: totalTasks },
+        { label: 'Completed tasks', value: completedTasks },
+        { label: 'Today tasks', value: todayTasks },
+        { label: 'Week Tasks', value: weekTasks },
+      ],
+    };
+  }
+
+  async create(dto: AuthDto) {
+    const user = {
+      email: dto.email,
+      name: '',
+      password: await hash(dto.password),
+    };
+
+    return this.prisma.user.create({
+      data: user,
+    });
+  }
+
+  async update(id: string, dto: UserDto) {
+    let data = dto;
+
+    if (dto.password) {
+      data = { ...dto, password: await hash(dto.password) };
+    }
+
     return this.prisma.user.update({
-      where: { id: id },
-      data: {
-        imageUrl: user.imageUrl,
-        email: user.email,
-        password: user.password,
-        name: user.name,
+      where: { id },
+      data,
+      select: {
+        name: true,
+        email: true,
       },
     });
   }

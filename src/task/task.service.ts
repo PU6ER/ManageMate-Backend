@@ -1,48 +1,38 @@
-import { PrismaService } from './../prisma.service';
-import { TaskDto, SubtaskDto } from './task.dto';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma.service';
+import { TaskDto } from './task.dto';
 
 @Injectable()
 export class TaskService {
   constructor(private prisma: PrismaService) {}
 
-  async getByProjectId(id: string) {
-    const task = await this.prisma.task.findMany({
+  async getAll(userId: string) {
+    return this.prisma.task.findMany({
       where: {
-        projectId: +id,
+        userId,
       },
     });
-    if (!task) throw new NotFoundException('Task not found');
-    return task;
   }
 
-  getAll() {
-    return this.prisma.task.findMany();
-  }
-  createTask(dto: TaskDto, id: number) {
+  async create(dto: TaskDto, userId: string) {
     return this.prisma.task.create({
-      data: { ...dto, projectId: id },
+      data: {
+        ...dto,
+        user: { connect: { id: userId } },
+      },
+    });
+  }
+  async update(dto: Partial<TaskDto>, taskId: string, userId: string) {
+    return this.prisma.task.update({
+      where: {
+        userId,
+        id: taskId,
+      },
+      data: dto,
     });
   }
 
-  deleteTask(id: string) {
-    return this.prisma.task.delete({ where: { id: +id } });
+  async delete(taskId: string) {
+    return this.prisma.task.delete({ where: { id: taskId } });
   }
-  updateTaskStatus(dto: string, id: string) {
-    return this.prisma.task.update({
-      where: { id: +id },
-      data: { status: dto },
-    });
-  }
-  //   async toggleDone(id: string) {
-  //     const task = await this.getById(id);
-  //     return this.prisma.task.update({
-  //       where: {
-  //         id: task.id,
-  //       },
-  //       data: {
-  //         isDone: !task.isDone,
-  //       },
-  //     });
-  //   }
 }

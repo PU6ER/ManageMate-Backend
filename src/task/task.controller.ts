@@ -1,58 +1,54 @@
-import { SubtaskDto, TaskDto } from './task.dto';
 import {
   Body,
   Controller,
   Delete,
   Get,
-  Header,
+  HttpCode,
   Param,
-  Patch,
   Post,
+  Put,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { CurrentUser } from 'src/auth/decorators/user.decorator';
+import { TaskDto } from './task.dto';
 import { TaskService } from './task.service';
-import { Public } from 'src/auth/constants';
 
-@Controller('')
+@Controller('user/tasks')
 export class TaskController {
-  constructor(private taskService: TaskService) {}
+  constructor(private readonly taskService: TaskService) {}
 
   @Get()
-  async getTaks() {
-    return this.taskService.getAll();
+  @Auth()
+  async getAll(@CurrentUser('id') userId: string) {
+    return this.taskService.getAll(userId);
   }
-  @Get('/projects/:id/tasks')
-  @Public()
-  // @Header('Access-Control-Allow-Origin', 'http://localhost:5173')
-  async getTasksByProject(@Param('id') id: string) {
-    return this.taskService.getByProjectId(id);
-  }
-  @Post('/projects/:id/tasks')
-  @Public()
-  // @Header('Access-Control-Allow-Origin', 'http://localhost:5173')
+
   @UsePipes(new ValidationPipe())
-  async createTask(@Body() dto: TaskDto, @Param('id') id: string) {
-    return this.taskService.createTask(dto, +id);
+  @HttpCode(200)
+  @Post()
+  @Auth()
+  async create(@Body() dto: TaskDto, @CurrentUser('id') userId: string) {
+    return this.taskService.create(dto, userId);
   }
 
-  @Delete('/tasks/:id')
-  @Public()
-  // @Header('Access-Control-Allow-Origin', 'http://localhost:5173')
-  async deleteTask(@Param('id') id: string) {
-    return this.taskService.deleteTask(id);
-  }
-
-  @Patch('/tasks/:id/:status')
-  @Public()
-  async updateTaskStatus(
+  @UsePipes(new ValidationPipe())
+  @HttpCode(200)
+  @Put(':id')
+  @Auth()
+  async update(
+    @Body() dto: TaskDto,
+    @CurrentUser('id') userId: string,
     @Param('id') id: string,
-    @Param('status') status: string,
   ) {
-    return this.taskService.updateTaskStatus(status, id);
+    return this.taskService.update(dto, id, userId);
   }
-  // @Patch(':id')
-  // async toggleDone(@Param('id') id: string) {
-  //   return this.taskService.toggleDone(id)
-  // }
+
+  @HttpCode(200)
+  @Delete(':id')
+  @Auth()
+  async delete(@Param('id') id: string) {
+    return this.taskService.delete(id);
+  }
 }

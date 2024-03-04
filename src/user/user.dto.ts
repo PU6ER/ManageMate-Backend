@@ -1,30 +1,44 @@
-import { IsBoolean, IsInt, IsString } from 'class-validator';
-export class TaskDto {
-  //   @IsInt()
-  //   id: number;
-  @IsString()
-  name: string;
-  @IsString()
-  description: string;
-  @IsString()
-  status: string;
-  @IsString()
-  group: string;
-  projectId: number;
+import {
+  IsEmail,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+  MinLength,
+} from 'class-validator';
+
+export class PomodoroSettingDto {
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  workInterval?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  breakInterval?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(10)
+  intervalsCount?: number;
 }
-export class UserDto {
+
+export class UserDto extends PomodoroSettingDto {
+  @IsEmail()
+  @IsOptional()
+  email: string;
+
   @IsString()
+  @IsOptional()
   name: string;
-  @IsString()
-  email: string;
-  @IsString()
-  password: string;
-  @IsString()
-  imageUrl: string;
-}
-export class GetUserDto {
-  @IsString()
-  email: string;
+
+  @MinLength(6, {
+    message: 'Password must be at least 6 characters long',
+  })
+  @IsOptional()
   @IsString()
   password: string;
 }

@@ -1,25 +1,24 @@
-import { IsBoolean, IsInt, IsString } from 'class-validator';
-export class TaskDto {
-  //   @IsInt()
-  //   id: number;
-  @IsString()
-  name: string;
-  @IsString()
-  description: string;
-  @IsString()
-  status: string;
-  @IsString()
-  group: string;
-  projectId: number;
-}
-export class SubtaskDto {
-    // @IsInt()
-    // id: number;
-  @IsString()
-  name: string;
-  @IsString()
-  description: string;
-  @IsBoolean()
-  done: boolean;
-  taskId: number;
+import { Priority } from '@prisma/client'
+import { Transform } from 'class-transformer'
+import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator'
+
+export class TaskDto{
+    @IsString()
+    @IsOptional()
+    name: string
+
+    @IsBoolean()
+    @IsOptional()
+    isCompleted?: boolean
+
+    @IsString()
+    @IsOptional()
+    createdAt?: string
+
+    @IsEnum(Priority)
+    @IsOptional()
+    @Transform(({value}) => ('' + value).toLowerCase())
+    priority?: Priority
+
+
 }
